@@ -12,7 +12,10 @@
 #include "Vertex.h"
 #include "Triangle.h"
 #include "Grid.h"
+#include "Edge.h"
+
 class Mesh {
+    
 public:
     std::vector<Vertex> V;
     std::vector<Triangle> T;
@@ -27,13 +30,12 @@ public:
 	void smooth(double a);
 	void reloadOFF();
 	void simplifyMesh (unsigned int r);
+    void subdivideLoop();
     
 protected:
     int farVertex();
     void correspGridVertex(std::vector< std::vector<unsigned int> >& vertecesOfZone, std::vector<unsigned int> & zoneOfVertex , Grid & g);
     std::vector<Vec3Df> eachZoneBarycentre(std::vector< std::vector<unsigned int> >& vertecesOfZone,std::vector<unsigned int> & correspZoneNVertex);
     void recalculateTriangleAndVerteces(std::vector<unsigned int> & zoneOfVertex, std::vector<unsigned int> & correspZoneNVertex, std::vector<Vec3Df> baryVector);
-    
-    //void correspVertecesZone(Grid &g, );
 };
 #endif

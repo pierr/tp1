@@ -61,6 +61,6 @@ dep:
 # liste des dÈpendances gÈnÈrÈe par 'make dep'
 Camera.o: Camera.cpp Camera.h Vec3D.h Trackball.h
 Grid.o : Grid.cpp Vertex.h Vec3D.h Zone.h
-Mesh.o : Mesh.cpp Grid.h Triangle.h Vertex.h
-gmini.o: gmini.cpp Vec3D.h Camera.h Trackball.h Vertex.h Grid.h Mesh.h Zone.h Triangle.h Mesh.h
+Mesh.o : Mesh.cpp Grid.h Triangle.h Vertex.h Edge.h
+gmini.o: gmini.cpp Vec3D.h Camera.h Trackball.h Vertex.h Grid.h Mesh.h Zone.h Triangle.h Mesh.h Edge.h
 Trackball.o: Trackball.cpp Trackball.h

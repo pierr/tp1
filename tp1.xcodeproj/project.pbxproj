@@ -45,6 +45,7 @@
 		0162EC9713316868009889E9 /* Grid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Grid.h; sourceTree = "<group>"; };
 		0162EC99133169BC009889E9 /* Mesh.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mesh.cpp; sourceTree = "<group>"; };
 		0162EC9A133169BC009889E9 /* Mesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Mesh.h; sourceTree = "<group>"; };
+		01DB637F133AA31700C8DA9F /* Edge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Edge.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -93,6 +94,7 @@
 				0162EC9713316868009889E9 /* Grid.h */,
 				0162EC99133169BC009889E9 /* Mesh.cpp */,
 				0162EC9A133169BC009889E9 /* Mesh.h */,
+				01DB637F133AA31700C8DA9F /* Edge.h */,
 			);
 			path = tp1;
 			sourceTree = "<group>";

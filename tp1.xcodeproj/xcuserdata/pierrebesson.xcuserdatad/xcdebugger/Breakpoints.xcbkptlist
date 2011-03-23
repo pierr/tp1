@@ -44,20 +44,6 @@
          landmarkType = "5">
       </FileBreakpoint>
       <FileBreakpoint
-         shouldBeEnabled = "Yes"
-         ignoreCount = "0"
-         continueAfterRunningActions = "No"
-         isPathRelative = "1"
-         filePath = "tp1/Mesh.cpp"
-         timestampString = "322581771.347909"
-         startingColumnNumber = "9223372036854775807"
-         endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "335"
-         endingLineNumber = "335"
-         landmarkName = "Mesh::simplifyMesh (unsigned int r)"
-         landmarkType = "5">
-      </FileBreakpoint>
-      <FileBreakpoint
          shouldBeEnabled = "No"
          ignoreCount = "0"
          continueAfterRunningActions = "No"
@@ -83,6 +69,20 @@
          startingLineNumber = "292"
          endingLineNumber = "292"
          landmarkName = "Mesh::recalculateTriangleAndVerteces(std::vector&lt;unsigned int&gt; &amp; zoneOfVertex, std::vector&lt;unsigned int&gt; &amp; correspZoneNVertex, std::vector&lt;Vec3Df&gt; baryVector)"
+         landmarkType = "5">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "Yes"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         isPathRelative = "1"
+         filePath = "tp1/Mesh.cpp"
+         timestampString = "322600781.546088"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "339"
+         endingLineNumber = "339"
+         landmarkName = "Mesh::simplifyMesh (unsigned int r)"
          landmarkType = "5">
       </FileBreakpoint>
    </FileBreakpoints>

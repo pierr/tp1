@@ -9,6 +9,8 @@
 #include <iostream>
 #include <fstream>
 #include "Mesh.h"
+#include "Edge.h"
+#include <map>
 using namespace std;
 // -------------------------------------------
 // Basic Mesh class
@@ -280,7 +282,6 @@ void Mesh::recalculateTriangleAndVerteces(std::vector<unsigned int> & zoneOfVert
     std::vector<Triangle> nT; 
     //Pour chaque triangle
     for(unsigned int i =0; i< T.size(); i++){
-             
         bool isv1v2different = (zoneOfVertex[T[i].v[1]] != zoneOfVertex[T[i].v[2]]);
         bool isv0v1different = (zoneOfVertex[T[i].v[0]] != zoneOfVertex[T[i].v[1]]);
         bool isv0v2different = (zoneOfVertex[T[i].v[0]] != zoneOfVertex[T[i].v[2]]);
@@ -309,75 +310,57 @@ void Mesh::recalculateTriangleAndVerteces(std::vector<unsigned int> & zoneOfVert
     
 }
 
+
+/**
+ *Here we implement an operator of Mesh simplification. We use a grid
+ */
 void Mesh::simplifyMesh (unsigned int r){
-		cout << "°°°°°°We apply an algo to simplify°°°°°°" << endl;
+    cout << "°°°°°°We apply a simplification algo with a grid of resolution " << r << " °°°°°°" << endl;
     int v = farVertex();//On cherche le sommet le plus éloigné du centre.
     float dMax = Vec3Df::distance(Vec3Df(0.,0.,0.),this->V[v].p); //On calcule la distance entre ces points
-	
-    cout << "sommet v " << farVertex() << " distance " << dMax << endl;
-	cout << "Taille de V " << V.size() << endl;
-	cout << "Les coordonnées du sommet v1 sont : x " << V[v].p[0] << " y " << V[v].p[1] << " z "<< V[v].p[2] << endl; 
-	
-
 	//On crée la grille
 	float lmax = sqrt(2)*dMax;
 	Grid g =  Grid(lmax,r);
     
-    
     //On appelle une fonction qui permet de partir d'une grille et de lister les sommets correspondants
-    
-    
 	int nZone = (unsigned int) g.cubeRegions.size();
-	//On crée les récepteurs 
-	vector< vector<unsigned int> > vertecesOfZone(nZone);//Un vecteur qui est indicé par la zone et qui contient la liste des indices sommets d'une zone.
-	vector<unsigned int> zoneOfVertex(V.size());//Un vecteur indicé par les sommets et qui contient l'indice de la zone de ce sommet.
-	vector<Vertex> vertexOfZone(nZone); 
-	// faire une méthode qui remplit les vecteurs au dessus
-	//faire une méthode qui crée le barycentre pour chaque zone
-	//faire une méthode qui calcule les triangles restant pertinant
 	
-    cout << "Le nombre de zone est " << nZone << endl;
-    cout << "Le nombre de sommets est " << V.size() << endl;
+	vector< vector<unsigned int> > vertecesOfZone(nZone);//Un vecteur qui est indicé par la zone et qui contient la liste des indices sommets d'une zone.
+	
+    vector<unsigned int> zoneOfVertex(V.size());//Un vecteur indicé par les sommets et qui contient l'indice de la zone de ce sommet.
+	//vector<Vertex> vertexOfZone(nZone); 
     
+    //Méthode qui permet d'avoir des index de sommets par zone de grille et l'index réciproque
     correspGridVertex(vertecesOfZone, zoneOfVertex, g);
     
-    //DEBUG OF THIS METHOD
-    unsigned int  nSommetsIn =0;
-    for( int i =0; i< nZone ; i++){
-        if(vertecesOfZone[i].size() >0){
-            cout << "zone " << i << " nombre de vertex dans cette zone " << 
-            vertecesOfZone[i].size() << " { ";
-            for(unsigned int k =0; k < vertecesOfZone[i].size(); k++ ){
-            cout << " " << vertecesOfZone[i][k] << "[" << zoneOfVertex[vertecesOfZone[i][k]] << "]"<< ",";
-            }
-            cout << "}" << endl;
-            nSommetsIn+=vertecesOfZone[i].size();
-        }
-    }
-    cout  << "Nombre de sommets dans la grille"<< nSommetsIn <<  endl;
-   //END OF DEBUG 
-    
- 
+    //Vecteur qui contient les indices des nouveaux sommés ordonnés par zones de grille.
     vector<unsigned int> nVertexOfZone(nZone);
+    
+    //Méthode qui permeet de récupérer un vecteur contenant les barycentres de chaque zones.
     vector<Vec3Df> barycentreVector = eachZoneBarycentre(vertecesOfZone, nVertexOfZone);
  
-    
-    
-    //DEBUG de cette méthode
-    cout << "DEBUG Of the barycenter of each Zone" << endl;
-    for(unsigned int i =0; i< nVertexOfZone.size();i++){
-        cout << "Zone " << i << " nvo Vertex " << nVertexOfZone[i] << " "<<  barycentreVector[nVertexOfZone[i]][0] << ", " << barycentreVector[nVertexOfZone[i]][1] << ", " << barycentreVector[nVertexOfZone[i]][nVertexOfZone[i]]   << endl;
-        if(vertecesOfZone[i].size() >0 && nVertexOfZone[i] == 0){
-            cout << "We got o problem houston" << endl;
-        }
-    }
-    
-    
-    for(unsigned int i =0; i< barycentreVector.size(); i++){
-        if(barycentreVector[i][0] != 0. && barycentreVector[i][1] != 0. && barycentreVector[i][2] != 0.){
-            cout<< "zone " << i << " " <<  barycentreVector[i][0] << ", " << barycentreVector[i][1] << ", " << barycentreVector[i][2] << endl;
-        }
-    }
+    //Cette méthode permet de redéfinir les triangles à partir de ceux qui ont été calculés.
     recalculateTriangleAndVerteces(zoneOfVertex, nVertexOfZone, barycentreVector);
     
 }
+
+int getHashKey(int k, int l){
+    if(k>l){
+        return (k+l)*(k-l);
+    }return (k+l)*(l-k);
+} 
+
+
+/**
+ *This fonction is made in order to add vertices and triangles with a subdivision algorthm (loop subdiv algo.)
+ *You can look to the following paper:« A factored Approach to Subdivision Surfaces », Warren and Schaefer, 2004 (http://faculty.cs.tamu.edu/schaefer/research/tutorial.pdf)
+ */
+void Mesh::subdivideLoop(){
+    vector<Triangle> nV;
+    std::map<int, int> mapEdge;
+    for(unsigned int i =0; i< T.size(); i++){
+        mapEdge[getHashKey( T[i].v[0], T[i].v[1])];
+        //T[i].v
+    }
+}
+
