@@ -24,8 +24,10 @@ unsigned int Grid::vertexRegion(const Vertex & v){
 				}	
 			}	
 		}		
-	}
+	}return NULL; 
 }
+
+
 //Permet de construire les régions du cube et de les mettre dans un vecteur
 void Grid::constructGridRegion(){
 	unsigned int nZone =0;//Le numéro de la zone
@@ -46,7 +48,9 @@ void Grid::constructGridRegion(){
 			}
 		}
 	}
-	//Juste pour vérifier qu'on a bien couper le cube en zone
+	
+    
+    //Juste pour vérifier qu'on a bien couper le cube en zone
 	if(DEB ==1){
 		for(int i =0; i < 10 ; i++ ){
             std::cout << "---------------------------" << std::endl;

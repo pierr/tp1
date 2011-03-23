@@ -89,16 +89,40 @@ void usage () {
 
 // ------------------------------------
 
-void initLight () {
+void initLight (unsigned int nLight) {
     GLfloat light_position1[4] = {22.0f, 16.0f, 50.0f, 0.0f};
     GLfloat direction1[3] = {-52.0f,-16.0f,-50.0f};
-    GLfloat color1[4] = {0.5f, 1.0f, 0.5f, 1.0f};
+    //GLfloat color1[4] = {0.5f, 1.0f, 0.5f, 1.0f};
     GLfloat ambient[4] = {0.3f, 0.3f, 0.3f, 0.5f};
+    GLfloat color[4];
+    switch (nLight) {
+        case 1:
+            color[0] = 0.5f;
+            color[1] = 1.0f;
+            color[2] = 0.5f;
+            color[3] = 1.0f;
+            break;
+        case 2:
+            color[0] = 0.7f;
+            color[1] = 0.2f;
+            color[2] = 0.3f;
+            color[3] = 1.0f;
+            break;
+        case 3:
+            color[0] = 0.2f;
+            color[1] = 0.5f;
+            color[2] = 0.7f;
+            color[3] = 1.0f;
+            break;
+        default:
+            break;
+    }
+    
     
     glLightfv (GL_LIGHT1, GL_POSITION, light_position1);
     glLightfv (GL_LIGHT1, GL_SPOT_DIRECTION, direction1);
-    glLightfv (GL_LIGHT1, GL_DIFFUSE, color1);
-    glLightfv (GL_LIGHT1, GL_SPECULAR, color1);
+    glLightfv (GL_LIGHT1, GL_DIFFUSE, color);
+    glLightfv (GL_LIGHT1, GL_SPECULAR, color);
     glLightModelfv (GL_LIGHT_MODEL_AMBIENT, ambient);
     glEnable (GL_LIGHT1);
     glEnable (GL_LIGHTING);
@@ -108,7 +132,7 @@ void init (const char * modelFilename) {
     camera.resize (SCREENWIDTH, SCREENHEIGHT);
 	mesh.fileName = modelFilename;
 	mesh.loadOFF (modelFilename);	
-    initLight ();
+    initLight (1);
     glCullFace (GL_BACK);
     glEnable (GL_CULL_FACE);
     glDepthFunc (GL_LESS);
@@ -119,7 +143,7 @@ void init (const char * modelFilename) {
 void initCube(){
 	camera.resize (SCREENWIDTH, SCREENHEIGHT);
     mesh.makeCube();
-    initLight ();
+    initLight (1);
     glCullFace (GL_BACK);
     glEnable (GL_CULL_FACE);
     glDepthFunc (GL_LESS);
@@ -130,7 +154,7 @@ void initCube(){
 void initSphere(unsigned int resU, unsigned int resV){
 	camera.resize (SCREENWIDTH, SCREENHEIGHT);
     mesh.makeSphere(resU, resV);
-    initLight ();
+    initLight (1);
     glCullFace (GL_BACK);
     glEnable (GL_CULL_FACE);
     glDepthFunc (GL_LESS);
@@ -153,7 +177,15 @@ void clear () {
 // functions for alternative rendering.
 // ------------------------------------
 
+
 void draw () {
+    //On récupère la matrice objet monde
+    GLfloat	modl[16];
+    glGetFloatv( GL_MODELVIEW_MATRIX, modl );
+    GLfloat lightPos[4];
+    glGetLightfv(GL_LIGHT1, GL_POSITION, lightPos);
+    
+    //Vec3Df lightPosition()
     const vector<Vertex> & V = mesh.V;
     const vector<Triangle> & T = mesh.T;
     glBegin (GL_TRIANGLES);
@@ -164,13 +196,19 @@ void draw () {
             Vec3Df n = Vec3Df::crossProduct (e01, e02);
             n.normalize ();
             glNormal3f (n[0], n[1], n[2]);
+            //glColorMaterial(<#GLenum face#>, <#GLenum mode#>)
+            //modl.V[T[i].v]
         }
+        
+        //glGetFloatv(<#GLenum pname#>, <#GLfloat *params#>)
         for (unsigned int j = 0; j < 3; j++) {
             const Vertex & v = V[T[i].v[j]];
             if (polygonMode == Gouraud)
                 glNormal3f (v.n[0], v.n[1], v.n[2]);
             glVertex3f (v.p[0], v.p[1], v.p[2]);
+            
         }
+        
     }
     glEnd ();
 }
@@ -252,6 +290,15 @@ void key (unsigned char keyPressed, int x, int y) {
         case '6':
             cerr << "Calling simplifyMesh with parameter value of 16" << endl;
             mesh.simplifyMesh(16);
+            break;
+        case 'k':
+            initLight(1);
+            break;
+        case 'l':
+            initLight(2);
+            break;
+        case 'm':
+            initLight(3);
             break;
         case '?':
         default:

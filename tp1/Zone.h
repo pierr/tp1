@@ -15,7 +15,7 @@ public:
 	Vec3Df p;
 	Vec3Df q ;
 	unsigned int num;
-	inline Zone(const Vec3Df &p1, const Vec3Df &p2 ,unsigned int numero){
+	inline Zone( Vec3Df const &p1, Vec3Df const &p2 ,unsigned int numero){
 		p = p1;
 		q = p2;
 		num = numero;

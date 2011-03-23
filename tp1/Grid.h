@@ -19,9 +19,9 @@ public:
 	Vec3Df firstPoint;//Le vertex associé au point de départ du site.
 	float length;//Longeur d'arrête du cube.
 	unsigned int res;//Résolution de la grille
-	float pas;
+	float pas;//pas entre deux régions.
     std::vector<Zone> cubeRegions;
-	static const int DEB = 1;
+	static const int DEB = 0;
     inline Grid(float l, unsigned int r){
 		firstPoint = Vec3Df(-l,-l,-l);
 		length = l;

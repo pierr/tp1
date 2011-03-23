@@ -225,46 +225,108 @@ void Mesh::smooth(double a){
 	}
 }
 
+int Mesh::farVertex(){
+    int farIndex = 0;
+    float dMax = 0;
+    Vec3Df center = Vec3Df(0.,0.,0.);
+    for (unsigned int i =0; i< this->V.size() ; i++){
+        float d = Vec3Df::distance(center, this->V[i].p);
+        if(d > dMax){
+            dMax = d;
+            farIndex =i;
+        } 
+    }
+    return farIndex;
+}
+
+
 /**
  * This methode is done in order to reduce the number of vertices and so the number of triangles
  * To do so we use a grid whit a definition which has the value of the parameter
  */
-void Mesh::simplifyMesh (unsigned int r){
-	unsigned int sizeV = (unsigned int) V.size();
-	cout << "La mesh a " << sizeV << "sommets " << endl;
-	//On va parcourir tous les sommets et calculer la distance aux autres, à chaque fois qu'on a une distance 
-	unsigned int v1 = 0;// indice du sommet 1
-	unsigned int v2 = 0; //indice du sommet 2
-	float dMax =0; // La distance max entre deux sommets de la mesh
+
+void Mesh::correspGridVertex(vector< vector<unsigned int> >& vertecesOfZone, vector<unsigned int> & zoneOfVertex , Grid & g){
+    for(unsigned int i =0; i< this->V.size() ; i++){
+		//cout << "sommet " << i << " zone de la grille " << g.vertexRegion(V[i]) << endl;
+		unsigned int nRegion = g.vertexRegion(V[i]);
+		vertecesOfZone[nRegion].push_back(i);	
+		zoneOfVertex[i] = nRegion;
+    }
+}
+
+ std::vector<Vec3Df> Mesh::eachZoneBarycentre(std::vector< std::vector<unsigned int> >& vertecesOfZone,std::vector<unsigned int> & correspZoneNVertex/*,std::vector<Vec3Df> & baryVect*/){
+     vector<Vec3Df> baryVect;
+    //Pour toutes les zones on va calculer le barycentre des sommets la composant
+    for(unsigned int i =0; i< vertecesOfZone.size(); i++){
+        unsigned int nbSommetInZone = vertecesOfZone[i].size();
+        //La notion de barycentre d'une zone n'a de sens que si il y a au moins un sommet dans cette zone.
+        if(nbSommetInZone > 0){
+            Vec3Df tempBary;
+            for(unsigned k =0; k< nbSommetInZone; k++){
+                tempBary += V[vertecesOfZone[i][k]].p;
+            }
+            tempBary/=nbSommetInZone;
+            baryVect.push_back(tempBary);
+            correspZoneNVertex[i] = baryVect.size()-1;
+        }        
+    }
+     return baryVect;
+}
+
+void Mesh::recalculateTriangleAndVerteces(std::vector<unsigned int> & zoneOfVertex, std::vector<unsigned int> & correspZoneNVertex, std::vector<Vec3Df> baryVector){
+
+    //    On crée un nouveau vecteur de Triangle
+    std::vector<Vertex> nV;
+    std::vector<Triangle> nT; 
+    //Pour chaque triangle
+    for(unsigned int i =0; i< T.size(); i++){
+             
+        bool isv1v2different = (zoneOfVertex[T[i].v[1]] != zoneOfVertex[T[i].v[2]]);
+        bool isv0v1different = (zoneOfVertex[T[i].v[0]] != zoneOfVertex[T[i].v[1]]);
+        bool isv0v2different = (zoneOfVertex[T[i].v[0]] != zoneOfVertex[T[i].v[2]]);
+        
+        //Si les trois triangles sont dans une zone séparée alors on le triangle existe toujours
+        if(isv0v1different && isv0v2different && isv1v2different){
+            nT.push_back(Triangle(
+                                  correspZoneNVertex[zoneOfVertex[T[i].v[0]]] ,
+                                  correspZoneNVertex[zoneOfVertex[T[i].v[1]]],
+                                  correspZoneNVertex[zoneOfVertex[T[i].v[2]]]
+                                  )
+                         );
+        }
+    }
+    //On remplace la liste d'ancien triangles par les nouveaux
+    T = nT;
     
-	for( unsigned int i = 0; i < sizeV; i++ ){
-		if(Grid::DEB ==1){
-			cout << "------"<< endl;
-			cout << "i " << i << endl;
-		}
-		for(unsigned int j = i+1; j< sizeV; j++){
-			float d = Vec3Df::distance(V[i].p, V[j].p);
-			if(Grid::DEB == 1){
-				cout << "j " << j << endl;
-				cout << "dMax "<< dMax <<  " d " << d << endl;
-				cout << "sommet v1 " << v1 << " sommet v2 " << v2 << " distance " << dMax << endl;
-			}
-			if( d > dMax){
-				dMax = d;
-				v1 = i;
-				v2 = j;
-			}
-		}
-	}
-	cout << "°°°°°°°°°°°°°°°°°°" << endl;
-	cout << "sommet v1 " << v1 << " sommet v2 " << v2 << " distance " << dMax << endl;
+    //On recréer un vecteur de vertex avec les sommets barycentryques précédemment calculés.
+    Vec3Df iNormal;
+    for(unsigned int i =0; i<baryVector.size();i++){
+        nV.push_back(Vertex(baryVector[i], iNormal));
+    } 
+    //On remplace les anciens vertex par les nouveaux
+    V =nV;
+    recomputeNormals();
+    
+}
+
+void Mesh::simplifyMesh (unsigned int r){
+		cout << "°°°°°°We apply an algo to simplify°°°°°°" << endl;
+    int v = farVertex();//On cherche le sommet le plus éloigné du centre.
+    float dMax = Vec3Df::distance(Vec3Df(0.,0.,0.),this->V[v].p); //On calcule la distance entre ces points
 	
-	cout << "Les coordonnées du sommet v1 sont : x " << V[v1].p[0] << " y " << V[v1].p[1] << " z "<< V[v1].p[2] << endl; 
-	cout << "Les coordonnées du sommet v2 sont : x " << V[v2].p[0] << " y " << V[v2].p[1] << " z "<< V[v2].p[2] << endl;
+    cout << "sommet v " << farVertex() << " distance " << dMax << endl;
+	cout << "Taille de V " << V.size() << endl;
+	cout << "Les coordonnées du sommet v1 sont : x " << V[v].p[0] << " y " << V[v].p[1] << " z "<< V[v].p[2] << endl; 
 	
+
 	//On crée la grille
 	float lmax = sqrt(2)*dMax;
 	Grid g =  Grid(lmax,r);
+    
+    
+    //On appelle une fonction qui permet de partir d'une grille et de lister les sommets correspondants
+    
+    
 	int nZone = (unsigned int) g.cubeRegions.size();
 	//On crée les récepteurs 
 	vector< vector<unsigned int> > vertecesOfZone(nZone);//Un vecteur qui est indicé par la zone et qui contient la liste des indices sommets d'une zone.
@@ -274,68 +336,48 @@ void Mesh::simplifyMesh (unsigned int r){
 	//faire une méthode qui crée le barycentre pour chaque zone
 	//faire une méthode qui calcule les triangles restant pertinant
 	
-	//On parcours la liste des sommets et on les classe dans les régions du cube
-	cout << "$$$$$$$$$$" << endl;
-	for(unsigned int i =0; i< sizeV ; i++){
-		//cout << "sommet " << i << " zone de la grille " << g.vertexRegion(V[i]) << endl;
-		unsigned int nRegion = g.vertexRegion(V[i]);
-		vertecesOfZone[nRegion].push_back(i);	
-		zoneOfVertex[i] = nRegion;
-		//Grid::DEB
-		if(i < 5){
-			cout << "sommet  " << i << " région " << nRegion << endl; 
-		}
-	}
-	
-	for(unsigned int i=0; i< vertecesOfZone.size(); i++){
-		unsigned int taille = (unsigned int) vertecesOfZone[i].size();
-		for (unsigned int j =0; j<taille ; i++ ){
-		//	cout <<"vertex " <<j << "zone" << i	 << vertecesOfZone[i][j].p[0] << endl;
-		}
-	}
-	/*
-     //Calcul du barycentre de chaque zone
-     
-     for(unsigned int i=0; i< vertecesOfZone.size(); i++){
-     Vec3Df vTemp;
-     unsigned int taille = vertecesOfZone[i].size();
-     for (unsigned int j =0; j<taille ; i++ ){
-     vTemp += V[vertecesOfZone[i][j]].p;//A chaque zone on ajoute les coordonnées de tous les certex de cette zone
-     //Grid::DEB
-     if(i < 5){
-     cout << "zone " << i << "vertex " << j  << " x " << V[vertecesOfZone[i][j]].p[0] << " y " << V[vertecesOfZone[i][j]].p[1] << " z "  << V[vertecesOfZone[i][j]].p[2]<< endl; 
-     }
-     }
-     if(taille >0 ){
-     cout << "Zone non vide" << endl;
-     //vertexOfZone[i] = Vertex(vTemp/vertecesOfZone[i].size(), Vec3Df(0.,0.,0.));//On divise par le nombre de vertex dans chaque zone
-     }
-     if(vertexOfZone[i].p[0] != 0){
-     cout << "test "<<vertexOfZone[i].p[0] << endl;
-     }
-     }
-     
-     //Calcul des nouveaux triangles 
-	 vector<Triangle> Ttemp;
-     for(unsigned int i=0; i< T.size(); i++){
-     unsigned int reg0 = zoneOfVertex[T[i].v[0]];
-     unsigned int reg1 = zoneOfVertex[T[i].v[1]];
-     unsigned int reg2 = zoneOfVertex[T[i].v[2]];
-     //Grid::DEB
-     //cout << "reg0" << reg0 << " reg1 " << reg1 << " reg2 " << reg2 << endl;
-     if(reg0 != reg1 && reg1 != reg2 && reg2!= reg0){//Si les trois vertex appartiennent à une zone diférente on conserve le triangle.
-     Ttemp.push_back(Triangle(reg0, reg1, reg2));//On construit la nouvelle liste de triangle intermédiaire
-     }
-     }
-     //cout << "taille de T "<< T.size() << " taille du nouveau T " << Ttemp.size() << endl;
-     //Création des nouveaux vecteurs T et V
-     cout << "taille de V" << V.size() << " taille de T " << T.size() << endl; 
-     V.clear();
-     T.clear();
-     V = vertexOfZone;
-     T = Ttemp;
-     cout << "après traitements" << endl;
-     cout << "taille de V" << V.size() << " taille de T " << T.size() << endl;
-     recomputeNormals();
-     */
+    cout << "Le nombre de zone est " << nZone << endl;
+    cout << "Le nombre de sommets est " << V.size() << endl;
+    
+    correspGridVertex(vertecesOfZone, zoneOfVertex, g);
+    
+    //DEBUG OF THIS METHOD
+    unsigned int  nSommetsIn =0;
+    for( int i =0; i< nZone ; i++){
+        if(vertecesOfZone[i].size() >0){
+            cout << "zone " << i << " nombre de vertex dans cette zone " << 
+            vertecesOfZone[i].size() << " { ";
+            for(unsigned int k =0; k < vertecesOfZone[i].size(); k++ ){
+            cout << " " << vertecesOfZone[i][k] << "[" << zoneOfVertex[vertecesOfZone[i][k]] << "]"<< ",";
+            }
+            cout << "}" << endl;
+            nSommetsIn+=vertecesOfZone[i].size();
+        }
+    }
+    cout  << "Nombre de sommets dans la grille"<< nSommetsIn <<  endl;
+   //END OF DEBUG 
+    
+ 
+    vector<unsigned int> nVertexOfZone(nZone);
+    vector<Vec3Df> barycentreVector = eachZoneBarycentre(vertecesOfZone, nVertexOfZone);
+ 
+    
+    
+    //DEBUG de cette méthode
+    cout << "DEBUG Of the barycenter of each Zone" << endl;
+    for(unsigned int i =0; i< nVertexOfZone.size();i++){
+        cout << "Zone " << i << " nvo Vertex " << nVertexOfZone[i] << " "<<  barycentreVector[nVertexOfZone[i]][0] << ", " << barycentreVector[nVertexOfZone[i]][1] << ", " << barycentreVector[nVertexOfZone[i]][nVertexOfZone[i]]   << endl;
+        if(vertecesOfZone[i].size() >0 && nVertexOfZone[i] == 0){
+            cout << "We got o problem houston" << endl;
+        }
+    }
+    
+    
+    for(unsigned int i =0; i< barycentreVector.size(); i++){
+        if(barycentreVector[i][0] != 0. && barycentreVector[i][1] != 0. && barycentreVector[i][2] != 0.){
+            cout<< "zone " << i << " " <<  barycentreVector[i][0] << ", " << barycentreVector[i][1] << ", " << barycentreVector[i][2] << endl;
+        }
+    }
+    recalculateTriangleAndVerteces(zoneOfVertex, nVertexOfZone, barycentreVector);
+    
 }

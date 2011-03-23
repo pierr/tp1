@@ -1,0 +1,114 @@
+#/*
+#*  Makefile
+# *  Tp1 3D
+#*
+# *  Created by Pierre Besson on 25/12/09.
+# *  Copyright 2009 Pierre. All rights reserved.
+#*
+#*/
+
+
+#
+# Exemple de Makefile
+# Cree l'executable myprog a partir des fichiers myprog.cc globals.cc zorro.cc
+#
+
+
+# Nom de l'executable a creer
+EXEC= Tp13D
+
+# Liste des fichiers source
+SOURCES= Camera.cpp gmini.cpp Trackball.cpp Grid.cpp Mesh.cpp Zone.h Triangle.h Vec3D.h
+
+# Liste des fichiers objets generes automatiquement a partir de ${SOURCES} 
+# en remplacant chaque .cc par un .o (à modifier si l'extension est .cpp)
+OBJETS=${SOURCES:%.cpp=%.o}
+
+LIBS =  -lglut -lGLU -lGL -lm
+
+#########################################################"
+
+INCDIR = .
+LIBDIR = .
+BINDIR = .
+
+
+
+
+###########################################
+# Definition des programmes utilitaires
+
+# Compilateur C++
+# NB: certaines configs utilisent la macro CXX, d'autres CCC => on initialise les deux
+CXX= g++
+CCC= ${CXX}
+
+# Options du compilateur C++
+# -g permet de debugger, -O optimise, -Wall affiche les erreurs 
+
+CXXFLAGS= -g -Wall -03
+CCFLAGS= ${CXXFLAGS}
+
+# Options de l'editeur de liens
+LDFLAGS= -L/usr/X11R6/lib
+
+# librairies a utiliser
+LDLIBS = -L$(LIBDIR) $(LIBS)  
+
+# Exemple plus complique specifiant ou chercher les headers
+# et les librairies necessaires pour l'edition de liens
+
+# CXXFLAGS= -g -Wall -I/usr/local/qt/include
+# CCFLAGS= ${CXXFLAGS}
+# LDLIBS = -L/usr/local/qt/lib -lqt
+
+
+##########################################
+# Regles de construction/destruction des .o et de l'executable
+# (depend sera un fichier contenant les dependances)
+
+all: depend ${EXEC}
+
+${EXEC}: ${OBJETS}
+${CXX} -o ${EXEC} ${LDFLAGS} ${OBJETS} ${LDLIBS}
+
+install:
+-@cp -p -f $(EXEC) $(DESTBIN)
+
+clean:
+-@rm -f $(EXEC) $(OBJETS) depend core 1>/dev/null 2>&1
+
+
+###########################################
+# Regles implicites
+
+.SUFFIXES: .cpp .cxx .cc .C .c
+
+.cpp.o:
+$(CXX) -c $(CXXFLAGS) $(INCPATH) -o $@ $<
+
+.cxx.o:
+$(CXX) -c $(CXXFLAGS) $(INCPATH) -o $@ $<
+
+.cc.o:
+$(CXX) -c $(CXXFLAGS) $(INCPATH) -o $@ $<
+
+.C.o:
+$(CXX) -c $(CXXFLAGS) $(INCPATH) -o $@ $<
+
+.c.o:
+$(CC) -c (CFLAGS) $(INCPATH) -o $@ $<
+
+
+#############################################
+# Gestion des dependances : creation automatique des dependances
+# en utilisant l'option -MM de gcc 
+# (attention certains compilos n'ont pas cette option)
+
+depend: ${SOURCES} Makefile
+${CXX} -MM ${SOURCES} > depend
+
+# Inclusion du fichier des dependances
+-include depend
+
+

@@ -27,7 +27,13 @@ public:
 	void smooth(double a);
 	void reloadOFF();
 	void simplifyMesh (unsigned int r);
-    //private:
-	//void correspVertecesZone(Grid &g, );
+    
+protected:
+    int farVertex();
+    void correspGridVertex(std::vector< std::vector<unsigned int> >& vertecesOfZone, std::vector<unsigned int> & zoneOfVertex , Grid & g);
+    std::vector<Vec3Df> eachZoneBarycentre(std::vector< std::vector<unsigned int> >& vertecesOfZone,std::vector<unsigned int> & correspZoneNVertex);
+    void recalculateTriangleAndVerteces(std::vector<unsigned int> & zoneOfVertex, std::vector<unsigned int> & correspZoneNVertex, std::vector<Vec3Df> baryVector);
+    
+    //void correspVertecesZone(Grid &g, );
 };
 #endif
