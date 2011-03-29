@@ -77,6 +77,8 @@ void printUsage () {
     <<	"1 , 2, 3  are done to use the smooth feature with a parameter of value 0.1 , 0.5, 0.75" << endl 
     << "r reload the original mesh" << endl
     << "4, 5, 6 in order to do a simplification with a resolution 64x64x64, 32x32x32 et 16x16x16." << endl 
+    << "s key in order to do a loop simplification algo" << endl 
+    << "k, l,  m  in order to change the light" << endl
     << endl;
 }
 
@@ -290,6 +292,9 @@ void key (unsigned char keyPressed, int x, int y) {
         case '6':
             cerr << "Calling simplifyMesh with parameter value of 16" << endl;
             mesh.simplifyMesh(16);
+            break;
+        case 's':
+            mesh.subdivideLoop();
             break;
         case 'k':
             initLight(1);

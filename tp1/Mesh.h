@@ -13,6 +13,7 @@
 #include "Triangle.h"
 #include "Grid.h"
 #include "Edge.h"
+#include <map>
 
 class Mesh {
     
@@ -37,5 +38,6 @@ protected:
     void correspGridVertex(std::vector< std::vector<unsigned int> >& vertecesOfZone, std::vector<unsigned int> & zoneOfVertex , Grid & g);
     std::vector<Vec3Df> eachZoneBarycentre(std::vector< std::vector<unsigned int> >& vertecesOfZone,std::vector<unsigned int> & correspZoneNVertex);
     void recalculateTriangleAndVerteces(std::vector<unsigned int> & zoneOfVertex, std::vector<unsigned int> & correspZoneNVertex, std::vector<Vec3Df> baryVector);
+    unsigned int insertEdge( std::map<Edge, unsigned int>& mapEdge, Edge & e);
 };
 #endif

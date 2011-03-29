@@ -19,6 +19,12 @@ public:
         n = v.n;
         return (*this);
     }
+    inline bool operator==( const Vertex& v){
+        return p == v.p && v.n == n;
+    };
+    inline bool operator<( const Vertex& v){
+        return p < v.p &&   n < v.n;
+    };
     Vec3Df p;
     Vec3Df n;
 };

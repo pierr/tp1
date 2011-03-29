@@ -11,6 +11,7 @@
 #include "Mesh.h"
 #include "Edge.h"
 #include <map>
+
 using namespace std;
 // -------------------------------------------
 // Basic Mesh class
@@ -246,7 +247,6 @@ int Mesh::farVertex(){
  * This methode is done in order to reduce the number of vertices and so the number of triangles
  * To do so we use a grid whit a definition which has the value of the parameter
  */
-
 void Mesh::correspGridVertex(vector< vector<unsigned int> >& vertecesOfZone, vector<unsigned int> & zoneOfVertex , Grid & g){
     for(unsigned int i =0; i< this->V.size() ; i++){
 		//cout << "sommet " << i << " zone de la grille " << g.vertexRegion(V[i]) << endl;
@@ -350,17 +350,54 @@ int getHashKey(int k, int l){
     }return (k+l)*(l-k);
 } 
 
-
+unsigned int Mesh::insertEdge( std::map<Edge, unsigned int>& mapEdge, Edge & e){
+    std::pair<std::map<Edge, unsigned int>::iterator,bool> ret = mapEdge.insert(std::pair<Edge,int>(e,V.size()));
+   /* cout << mapEdge.size() << endl;
+    cout << "Is it existing " << ret.second << endl;
+    cout << "The corresponding vertex is " << ret.first->second << endl;*/
+    if(ret.second == true){
+        V.push_back(Vertex((Vec3Df(V[e.v1].p)+Vec3Df(V[e.v2].p))/2, Vec3Df()));  
+    }
+    return ret.first->second;
+}
 /**
  *This fonction is made in order to add vertices and triangles with a subdivision algorthm (loop subdiv algo.)
  *You can look to the following paper:« A factored Approach to Subdivision Surfaces », Warren and Schaefer, 2004 (http://faculty.cs.tamu.edu/schaefer/research/tutorial.pdf)
  */
 void Mesh::subdivideLoop(){
-    vector<Triangle> nV;
-    std::map<int, int> mapEdge;
+    //On crée tous les conteneurs utiles/
+    vector<Triangle> nT;
+    std::map<Edge, unsigned int> mapEdge;
+    /*
+    int indexV0=T[0].v[0];
+    int indexV1=T[0].v[1];
+   // int indexV2=T[0].v[2];
+    Edge e0(indexV0,indexV1);
+        Edge e1(indexV1,indexV0);
+    insertEdge(mapEdge, e0);
+    insertEdge(mapEdge, e1);
+    */
     for(unsigned int i =0; i< T.size(); i++){
-        mapEdge[getHashKey( T[i].v[0], T[i].v[1])];
-        //T[i].v
+        unsigned int indexV0=T[i].v[0];
+        unsigned int indexV1=T[i].v[1];
+        unsigned int indexV2=T[i].v[2];
+        //On crée les 3 arrêtes du triangle 
+        Edge e0(indexV0,indexV1);
+        Edge e1(indexV1,indexV2);
+        Edge e2(indexV0,indexV2);
+        
+        //traitement arrete e0
+        unsigned int indexE0 = insertEdge(mapEdge, e0);
+        unsigned int indexE1 = insertEdge(mapEdge, e1);
+        unsigned int indexE2 = insertEdge(mapEdge, e2);
+       //Construction des triangles
+        nT.push_back(Triangle(indexV0, indexE0, indexE2));
+        nT.push_back(Triangle(indexE0, indexE1, indexE2));
+        nT.push_back(Triangle(indexE0, indexV1, indexE1));
+        nT.push_back(Triangle(indexE2, indexE1, indexV2));
+       
     }
+    recomputeNormals();
+    T = nT;
 }
 
