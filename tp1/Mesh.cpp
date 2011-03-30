@@ -392,12 +392,13 @@ void Mesh::subdivideLoop(){
         unsigned int indexE2 = insertEdge(mapEdge, e2);
        //Construction des triangles
         nT.push_back(Triangle(indexV0, indexE0, indexE2));
-        nT.push_back(Triangle(indexE0, indexE1, indexE2));
+        nT.push_back(Triangle(indexE2, indexE0, indexE1));
         nT.push_back(Triangle(indexE0, indexV1, indexE1));
         nT.push_back(Triangle(indexE2, indexE1, indexV2));
        
     }
-    recomputeNormals();
     T = nT;
+    recomputeNormals();
+ 
 }
 

@@ -97,6 +97,7 @@ void initLight (unsigned int nLight) {
     //GLfloat color1[4] = {0.5f, 1.0f, 0.5f, 1.0f};
     GLfloat ambient[4] = {0.3f, 0.3f, 0.3f, 0.5f};
     GLfloat color[4];
+    cout << "Changing the light" << endl;
     switch (nLight) {
         case 1:
             color[0] = 0.5f;
@@ -120,7 +121,8 @@ void initLight (unsigned int nLight) {
             break;
     }
     
-    
+
+   // glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLightfv (GL_LIGHT1, GL_POSITION, light_position1);
     glLightfv (GL_LIGHT1, GL_SPOT_DIRECTION, direction1);
     glLightfv (GL_LIGHT1, GL_DIFFUSE, color);
@@ -130,11 +132,75 @@ void initLight (unsigned int nLight) {
     glEnable (GL_LIGHTING);
 }
 
+void initMaterial(unsigned int whichMat){
+    GLfloat no_mat[] = { 0.0F,0.0F,0.0F,1.0F };
+    GLfloat mat_ambient[] = { 0.7F,0.7F,0.7F,1.0F };
+    GLfloat mat_ambient_color[] = { 0.8F,0.8F,0.2F,1.0F };
+    GLfloat mat_diffuse[] = { 0.1F,0.5F,0.8F,1.0F };
+    GLfloat mat_specular[] = { 1.0F,1.0F,1.0F,1.0F };
+    GLfloat no_shininess[] = { 0.0F };
+    GLfloat low_shininess[] = { 5.0F };
+    GLfloat high_shininess[] = { 100.0F };
+    GLfloat mat_emission[] = {0.3F,0.2F,0.2F,0.0F};
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    cerr << "Changing the material" << endl;
+    switch (whichMat) {
+        case 1:
+            //No mat
+            glMaterialfv(GL_FRONT,GL_AMBIENT,no_mat);
+            glMaterialfv(GL_FRONT,GL_DIFFUSE,mat_diffuse);
+            glMaterialfv(GL_FRONT,GL_SPECULAR,no_mat);
+            glMaterialfv(GL_FRONT,GL_SHININESS,no_shininess);
+            glMaterialfv(GL_FRONT,GL_EMISSION,no_mat);            
+            break;
+        case 2:
+            //mat_ambiant
+            glMaterialfv(GL_FRONT,GL_AMBIENT,no_mat);
+            glMaterialfv(GL_FRONT,GL_DIFFUSE,mat_diffuse);
+            glMaterialfv(GL_FRONT,GL_SPECULAR,mat_specular);
+            glMaterialfv(GL_FRONT,GL_SHININESS,low_shininess);
+            glMaterialfv(GL_FRONT,GL_EMISSION,no_mat);
+            break;
+        case 3:
+            //mat_ambiant_color
+            glMaterialfv(GL_FRONT,GL_AMBIENT,no_mat);
+            glMaterialfv(GL_FRONT,GL_DIFFUSE,mat_diffuse);
+            glMaterialfv(GL_FRONT,GL_SPECULAR,mat_specular);
+            glMaterialfv(GL_FRONT,GL_SHININESS,high_shininess);
+            glMaterialfv(GL_FRONT,GL_EMISSION,no_mat);
+            break;
+        case 4:
+            glMaterialfv(GL_FRONT,GL_AMBIENT,mat_ambient);
+            glMaterialfv(GL_FRONT,GL_DIFFUSE,mat_diffuse);
+            glMaterialfv(GL_FRONT,GL_SPECULAR,no_mat);
+            glMaterialfv(GL_FRONT,GL_SHININESS,no_shininess);
+            glMaterialfv(GL_FRONT,GL_EMISSION,no_mat);
+            break;
+        case 5:
+            glMaterialfv(GL_FRONT,GL_AMBIENT,mat_ambient);
+            glMaterialfv(GL_FRONT,GL_DIFFUSE,mat_diffuse);
+            glMaterialfv(GL_FRONT,GL_SPECULAR,no_mat);
+            glMaterialfv(GL_FRONT,GL_SHININESS,no_shininess);
+            glMaterialfv(GL_FRONT,GL_EMISSION,mat_emission);
+            break;
+        case 6:
+            glMaterialfv(GL_FRONT,GL_AMBIENT,mat_ambient_color);
+            glMaterialfv(GL_FRONT,GL_DIFFUSE,mat_diffuse);
+            glMaterialfv(GL_FRONT,GL_SPECULAR,no_mat);
+            glMaterialfv(GL_FRONT,GL_SHININESS,no_shininess);
+            glMaterialfv(GL_FRONT,GL_EMISSION,no_mat);
+            break;
+        default:
+            break;
+    }
+     }
+
 void init (const char * modelFilename) {
     camera.resize (SCREENWIDTH, SCREENHEIGHT);
 	mesh.fileName = modelFilename;
 	mesh.loadOFF (modelFilename);	
     initLight (1);
+    initMaterial(1);
     glCullFace (GL_BACK);
     glEnable (GL_CULL_FACE);
     glDepthFunc (GL_LESS);
@@ -156,7 +222,7 @@ void initCube(){
 void initSphere(unsigned int resU, unsigned int resV){
 	camera.resize (SCREENWIDTH, SCREENHEIGHT);
     mesh.makeSphere(resU, resV);
-    initLight (1);
+    //initLight (1);
     glCullFace (GL_BACK);
     glEnable (GL_CULL_FACE);
     glDepthFunc (GL_LESS);
@@ -191,22 +257,29 @@ void draw () {
     const vector<Vertex> & V = mesh.V;
     const vector<Triangle> & T = mesh.T;
     glBegin (GL_TRIANGLES);
+    
     for (unsigned int i = 0; i < T.size (); i++) {
+        /*if(i < (unsigned int)T.size()/2){
+            glColor3ub(255, 12, 4);
+        }  else{    
+            glColor3ub(1, 12, 200);
+        }*/
         if (polygonMode != Gouraud) {
             Vec3Df e01 = V[T[i].v[1]].p -  V[T[i].v[0]].p;
             Vec3Df e02 = V[T[i].v[2]].p -  V[T[i].v[0]].p;
             Vec3Df n = Vec3Df::crossProduct (e01, e02);
             n.normalize ();
             glNormal3f (n[0], n[1], n[2]);
-            //glColorMaterial(<#GLenum face#>, <#GLenum mode#>)
+            //glColorMaterial(GLenum face, GLenum mode)
             //modl.V[T[i].v]
         }
         
-        //glGetFloatv(<#GLenum pname#>, <#GLfloat *params#>)
+        //glGetFloatv(GLenum pname, GLfloat *params)
         for (unsigned int j = 0; j < 3; j++) {
             const Vertex & v = V[T[i].v[j]];
             if (polygonMode == Gouraud)
                 glNormal3f (v.n[0], v.n[1], v.n[2]);
+            
             glVertex3f (v.p[0], v.p[1], v.p[2]);
             
         }
@@ -304,6 +377,21 @@ void key (unsigned char keyPressed, int x, int y) {
             break;
         case 'm':
             initLight(3);
+            break;
+        case 'x':
+            initMaterial(1);
+            break;
+        case 'c':
+            initMaterial(2);
+            break;
+        case 'v':
+            initMaterial(3);
+            break;
+        case 'b':
+            initMaterial(4);
+            break;
+        case 'n':
+            initMaterial(5);
             break;
         case '?':
         default:
